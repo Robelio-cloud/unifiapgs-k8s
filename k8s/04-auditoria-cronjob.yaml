@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: auditoria-service
+  namespace: unifiapay
+spec:
+  schedule: "0 */6 * * *" # (Evidência 3.3 - A cada 6 horas)
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          
+          # --- Configuração de Segurança (Evidência 3.4) ---
+          securityContext:
+            runAsNonRoot: true # (Evidência 3.4 - runAsNonRoot)
+            runAsUser: 1000 # O user 'appuser' do Dockerfile
+            
+          containers:
+          - name: auditoria-service
+            image: robelio/auditoria-service-spb:v1.RM556786
+            imagePullPolicy: Always
+            
+            # --- Montando o "Livro-Razão" (Evidência 3.3) ---
+            volumeMounts:
+            - name: log-volume
+              mountPath: /var/logs/api # O caminho que o index.js usa
+              
+          # --- Definindo o Volume (o MESMO PVC) ---
+          volumes:
+          - name: log-volume
+            persistentVolumeClaim:
+              claimName: livro-razao-pvc

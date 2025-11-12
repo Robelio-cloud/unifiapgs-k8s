@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-pagamentos
+  namespace: unifiapay
+  labels:
+    app: api-pagamentos
+spec:
+  replicas: 2 # (Evidência 3.3 - 2 réplicas)
+  selector:
+    matchLabels:
+      app: api-pagamentos
+  template:
+    metadata:
+      labels:
+        app: api-pagamentos
+    spec:
+      
+      # --- Configuração de Segurança (Evidência 3.4) ---
+      securityContext:
+        runAsNonRoot: true # (Evidência 3.4 - runAsNonRoot)
+        runAsUser: 1000 # O user 'appuser' que criamos no Dockerfile
+      
+      containers:
+      - name: api-pagamentos
+        image: robelio/api-pagamentos-spb:v1.RM556786 # (Evidência 3.1)
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+        
+        # --- Injetando a Reserva (Evidência 3.2) ---
+        env:
+        - name: RESERVA_BANCARIA_SALDO
+          valueFrom:
+            configMapKeyRef:
+              name: api-config
+              key: RESERVA_BANCARIA_SALDO
+              
+        # --- Limites de Recursos (Evidência 3.4) ---
+        resources:
+          requests:
+            cpu: "100m" # 10% de uma CPU
+            memory: "128Mi" # 128 Megabytes
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+            
+        # --- Montando o "Livro-Razão" (Evidência 3.3) ---
+        volumeMounts:
+        - name: log-volume
+          mountPath: /var/logs/api # O caminho que o index.js usa
+          
+      # --- Definindo o Volume (o PVC) ---
+      volumes:
+      - name: log-volume
+        persistentVolumeClaim:
+          claimName: livro-razao-pvc

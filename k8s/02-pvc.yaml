@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: livro-razao-pvc
+  namespace: unifiapay
+spec:
+  accessModes:
+    # ReadWriteOnce: Pode ser lido/escrito por múltiplos pods,
+    # desde que estejam no mesmo Nó (o que no Kind é garantido).
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Um log não precisa de muito espaço para este desafio
+      storage: 1Gi

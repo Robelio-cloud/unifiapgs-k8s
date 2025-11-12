@@ -1,0 +1,11 @@
+# Ignora logs e dependências locais
+node_modules
+npm-debug.log
+
+# Ignora arquivos de sistema
+.DS_Store
+.git
+.gitignore
+
+# Ignora arquivos do VSCode
+.vscode/

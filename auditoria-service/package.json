@@ -1,0 +1,9 @@
+{
+    "name": "auditoria-service",
+    "version": "1.0.0",
+    "description": "Microsserviço que simula o Sistema de Liquidação (BACEN/STR).",
+    "main": "src/index.js",
+    "scripts": {
+        "start": "node src/index.js"
+    }
+}
