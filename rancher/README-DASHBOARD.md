@@ -138,15 +138,22 @@ pkill -f "port-forward"
 
 ## 📸 Screenshots para Evidências
 
-![image](images/image36.png)
+Capture prints das seguintes telas para o desafio:
 
-![image](images/image37.png)
+### **1. Login e Acesso**
+![Dashboard Login](../images/image36.png)
 
-![image](images/image38.png)
+### **2. Overview do Namespace unifiapay**
+![Namespace Overview](../images/image37.png)
 
-![image](images/image39.png)
+### **3. Deployments Rodando**
+![Deployments](../images/image38.png)
 
-![image](images/image40.png)
+### **4. Pods em Execução**
+![Pods](../images/image39.png)
+
+### **5. CronJob Configurado**
+![CronJob](../images/image40.png)
 
 ---
 

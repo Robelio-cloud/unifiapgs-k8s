@@ -171,11 +171,19 @@ kubectl delete namespace cert-manager
 
 ---
 
-## 📸 Screenshots e Evidências
+## 📸 Screenshots e Evidências (Histórico)
 
-![image](images/image10.png)
+### **Para o Desafio UniFIAP:**
 
-![image](images/image11.png)
+Estas capturas de tela serviriam de evidência caso o Rancher tivesse sido instalado com sucesso:
+
+#### **1. Tentativa de Instalação**
+![Erro de Instalação do Rancher](../images/image10.png)
+
+#### **2. Incompatibilidade de Versão**
+![Mensagem de Erro - Kubernetes 1.34](../images/image11.png)
+
+**Nota**: Como o Rancher não foi instalado com sucesso, as evidências do projeto foram capturadas no **Kubernetes Dashboard**. Consulte [`README-DASHBOARD.md`](README-DASHBOARD.md) para ver os screenshots funcionais.
 
 ---
 
