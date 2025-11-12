@@ -138,16 +138,15 @@ pkill -f "port-forward"
 
 ## 📸 Screenshots para Evidências
 
-Capture prints das seguintes telas para o desafio:
+![image](images/image36.png)
 
-1. **Dashboard Overview** - Visão geral do cluster
-2. **Namespace unifiapay** - Todos os recursos
-3. **Pods Running** - 2 réplicas da API
-4. **Pod Logs** - Logs mostrando transações PIX
-5. **Deployment Scaling** - Escalando de 2 para 4
-6. **CronJob Details** - Configuração da auditoria
-7. **PVC Details** - Volume compartilhado
-8. **ConfigMap** - Reserva bancária
+![image](images/image37.png)
+
+![image](images/image38.png)
+
+![image](images/image39.png)
+
+![image](images/image40.png)
 
 ---
 

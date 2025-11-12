@@ -1,6 +1,38 @@
 # 🐮 Rancher - Gerenciamento Kubernetes GUI
 
-## 📋 Sobre o Rancher
+## ⚠️ IMPORTANTE: Incompatibilidade com Kubernetes 1.34+
+
+**Este documento serve como referência histórica da tentativa de implementação do Rancher.**
+
+### **Problema Encontrado:**
+
+Durante a instalação do Rancher no cluster Kind (Kubernetes 1.34.0), foi identificado um problema crítico de **incompatibilidade de versão**:
+
+```
+Error: INSTALLATION FAILED: chart requires kubeVersion: < 1.34.0-0 which is incompatible with Kubernetes v1.34.0
+```
+
+### **Análise Técnica:**
+
+- ❌ **Rancher 2.12.x** não suporta Kubernetes 1.34+
+- ❌ Tentativas com `kubeVersionOverride` não foram bem-sucedidas
+- ❌ Incompatibilidade no nível de validação do Helm Chart
+- ⚠️ Instalação manual sem Helm poderia causar instabilidades
+
+### **Decisão Técnica:**
+
+Optou-se por utilizar o **Kubernetes Dashboard oficial** devido a:
+- ✅ **Compatibilidade total** com Kubernetes 1.34+
+- ✅ **Ferramenta oficial** da CNCF
+- ✅ **Leveza** (~50MB vs >1GB do Rancher)
+- ✅ **Simplicidade** adequada para um único cluster
+- ✅ **Estabilidade** garantida para a versão do Kind
+
+📖 **Documentação do Kubernetes Dashboard**: [`README-DASHBOARD.md`](README-DASHBOARD.md)
+
+---
+
+## 📋 Sobre o Rancher (Para Referência)
 
 O Rancher é uma plataforma completa de gerenciamento de clusters Kubernetes que oferece:
 
@@ -10,9 +42,11 @@ O Rancher é uma plataforma completa de gerenciamento de clusters Kubernetes que
 - 📦 **Catálogo de Apps** - Deploy fácil com Helm Charts
 - 🔄 **Multi-Cluster** - Gerenciar múltiplos clusters K8s
 
+**Nota**: Ideal para ambientes de produção com Kubernetes < 1.34 e necessidade de gerenciar múltiplos clusters.
+
 ---
 
-## 🚀 Instalação Rápida
+## 🚀 Tentativa de Instalação (Histórico)
 
 ### **Pré-requisitos**
 
@@ -98,97 +132,7 @@ https://rancher.localhost
 
 ---
 
-## 📦 Gerenciando o Projeto UniFIAP Pay no Rancher
 
-### **1. Acessar o Cluster**
-
-1. Faça login no Rancher
-2. Vá em **"Cluster Management"**
-3. Clique no cluster **"local"** (seu Kind)
-
-### **2. Visualizar Recursos**
-
-#### **Namespaces:**
-- Menu lateral → **"Namespaces"**
-- Procure por: `unifiapay`
-
-#### **Deployments:**
-- Menu lateral → **"Workloads"** → **"Deployments"**
-- Você verá: `api-pagamentos`
-
-#### **Pods:**
-- Menu lateral → **"Workloads"** → **"Pods"**
-- Filtre por namespace: `unifiapay`
-
-#### **PVCs:**
-- Menu lateral → **"Storage"** → **"PersistentVolumeClaims"**
-- Você verá: `livro-razao-pvc`
-
-#### **CronJobs:**
-- Menu lateral → **"Workloads"** → **"CronJobs"**
-- Você verá: `auditoria-service`
-
-### **3. Ações Disponíveis**
-
-#### **Escalar Deployment:**
-1. Vá em **Deployments** → `api-pagamentos`
-2. Clique no **"⋮"** (três pontos)
-3. Selecione **"Edit Config"**
-4. Altere **"Replicas"** para 4
-5. Clique em **"Save"**
-
-#### **Ver Logs:**
-1. Vá em **Pods**
-2. Clique em um pod da `api-pagamentos`
-3. Aba **"Logs"**
-4. Veja os logs em tempo real! 📊
-
-#### **Executar Shell no Pod:**
-1. Vá em **Pods**
-2. Clique em um pod
-3. Clique em **"Execute Shell"** ⚡
-4. Execute: `cat /var/logs/api/instrucoes.log`
-
-#### **Monitorar Recursos:**
-1. Vá em **Workloads** → **Deployments**
-2. Clique em `api-pagamentos`
-3. Aba **"Metrics"** → Veja CPU/Memory 📈
-
-### **4. Deploy via Rancher UI**
-
-Você pode fazer deploy de novas versões visualmente:
-
-1. **Workloads** → **Deployments** → `api-pagamentos`
-2. Clique em **"Redeploy"**
-3. Ou edite a imagem Docker em **"Edit Config"**
-
----
-
-## 🔧 Funcionalidades Avançadas
-
-### **1. Instalar Prometheus + Grafana**
-
-```bash
-# Via Rancher UI:
-# Apps & Marketplace → Charts → Monitoring
-# Ou via kubectl:
-kubectl apply -f rancher/monitoring-stack.yaml
-```
-
-### **2. Configurar Alertas**
-
-1. **Cluster Tools** → **Monitoring**
-2. Configurar alertas para:
-   - CPU > 80%
-   - Memory > 90%
-   - Pods em CrashLoopBackOff
-
-### **3. Backup e Restore**
-
-1. **Cluster Tools** → **Backups**
-2. Configurar backup automático do cluster
-
----
 
 ## 🎯 Comandos Úteis
 
@@ -229,13 +173,9 @@ kubectl delete namespace cert-manager
 
 ## 📸 Screenshots e Evidências
 
-### **Para o Desafio UniFIAP:**
+![image](images/image10.png)
 
-1. **Print da Dashboard** - Mostrando todos os recursos
-2. **Print dos Pods** - 2 réplicas rodando
-3. **Print dos Logs** - Logs da API no Rancher
-4. **Print do Scale** - Escalando de 2 para 4 réplicas
-5. **Print do CronJob** - Auditoria agendada
+![image](images/image11.png)
 
 ---
 
@@ -256,38 +196,53 @@ kubectl -n cattle-system exec $(kubectl -n cattle-system get pods -l app=rancher
 
 ---
 
-## 📊 Monitoramento do UniFIAP Pay
-
-### **Dashboards Recomendados:**
-
-1. **Cluster Dashboard** - Visão geral do cluster
-2. **Namespace Dashboard** - Foco no `unifiapay`
-3. **Workload Dashboard** - Métricas da `api-pagamentos`
-4. **Pod Dashboard** - Recursos de cada pod
-
-### **Métricas Importantes:**
-
-- ✅ CPU Usage (deve estar baixo ~5-10%)
-- ✅ Memory Usage (~128Mi)
-- ✅ Network I/O (tráfego das requisições PIX)
-- ✅ Pod Restarts (deve ser 0)
-- ✅ CronJob Success Rate (100%)
 
 ---
 
-## 🎓 Recursos de Aprendizado
+## 🎓 Recursos de Aprendizado (Rancher)
 
 - [Documentação Oficial](https://rancher.com/docs/)
 - [Rancher Academy](https://academy.rancher.com/)
 - [Vídeos Tutoriais](https://www.youtube.com/c/Rancher)
+- [Compatibility Matrix](https://www.suse.com/suse-rancher/support-matrix/all-supported-versions/)
 
 ---
 
-## 🤝 Suporte
+## ✅ Solução Implementada: Kubernetes Dashboard
 
-**Problemas comuns:**
+Para este projeto, foi implementado o **Kubernetes Dashboard oficial** como alternativa ao Rancher.
 
-### **Rancher não inicia**
+### **Vantagens para este contexto:**
+
+| Critério | Rancher | Kubernetes Dashboard |
+|----------|---------|---------------------|
+| Compatibilidade K8s 1.34+ | ❌ Não suportado | ✅ Total |
+| Peso/Recursos | 🔴 Pesado (>1GB) | 🟢 Leve (~50MB) |
+| Complexidade | 🟡 Alto (multi-cluster) | 🟢 Simples (single) |
+| Tempo de instalação | 🟡 5-10 min | 🟢 1-2 min |
+| Funcionalidades básicas | ✅ Sim | ✅ Sim |
+| Multi-cluster | ✅ Sim | ❌ Não |
+| Catálogo de apps | ✅ Sim | ❌ Não |
+| **Adequado para Kind local** | ❌ Não | ✅ Sim |
+
+### **Acesse a documentação:**
+
+📖 **[README-DASHBOARD.md](README-DASHBOARD.md)** - Guia completo de instalação e uso
+
+---
+
+## 🤝 Troubleshooting (Histórico)
+
+**Problemas encontrados durante a tentativa de instalação:**
+
+### **1. Incompatibilidade de Versão (CRÍTICO)**
+```bash
+Error: chart requires kubeVersion: < 1.34.0-0 which is incompatible with Kubernetes v1.34.0
+```
+**Causa**: Rancher 2.12.x não suporta Kubernetes 1.34+  
+**Solução aplicada**: Migração para Kubernetes Dashboard
+
+### **2. Rancher não inicia (Se tentasse forçar instalação)**
 ```bash
 # Verificar recursos
 kubectl describe pod -n cattle-system -l app=rancher
@@ -296,11 +251,11 @@ kubectl describe pod -n cattle-system -l app=rancher
 kubectl logs -n cattle-system -l app=rancher --tail=100
 ```
 
-### **Certificado SSL não confiável**
+### **3. Certificado SSL não confiável (Caso instalasse)**
 - Normal em ambiente local
 - Clique em "Avançado" → "Continuar" no navegador
 
-### **Port-forward cai**
+### **4. Port-forward cai (Problema geral)**
 ```bash
 # Use nohup para manter ativo
 nohup kubectl port-forward -n cattle-system svc/rancher 8443:443 &
@@ -308,6 +263,26 @@ nohup kubectl port-forward -n cattle-system svc/rancher 8443:443 &
 
 ---
 
-**Desenvolvido para**: UniFIAP Pay SPB - RM556786  
-**Cluster**: Kind (local)  
-**Rancher Version**: Latest Stable
+## 📌 Conclusão
+
+Este documento serve como **registro histórico** da tentativa de implementação do Rancher no projeto UniFIAP Pay SPB.
+
+### **Lições Aprendidas:**
+
+1. ✅ **Validar compatibilidade** de versões antes da escolha de ferramentas
+2. ✅ **Adequar ferramentas** ao contexto do projeto (single cluster vs multi-cluster)
+3. ✅ **Priorizar leveza** em ambientes de desenvolvimento local
+4. ✅ **Usar ferramentas oficiais** quando possível (maior estabilidade)
+
+### **Resultado Final:**
+
+- ❌ Rancher: Incompatível com Kubernetes 1.34+
+- ✅ **Kubernetes Dashboard**: Implementado com sucesso
+
+---
+
+**Projeto**: UniFIAP Pay SPB - Sistema de Pagamentos Brasileiro  
+**RM**: 556786  
+**Cluster**: Kind (Kubernetes 1.34.0)  
+**Status**: Rancher descontinuado | Dashboard implementado  
+**Data**: Novembro 2025
