@@ -204,6 +204,10 @@ Abra seu navegador e acesse:
 
 Você verá o JSON formatado automaticamente! 🎨
 
+![image](images/image34.png)
+
+![image](images/image35.png)
+
 ### **3. Enviar uma Transação PIX**
 
 ```bash
