@@ -185,13 +185,29 @@ kubectl logs -n unifiapay -l app=api-pagamentos --tail=50
 
 ## 🧪 Testando o Sistema
 
-### **1. Enviar uma Transação PIX**
+### **1. Iniciar Port-Forward para Acessar a API**
 
 ```bash
-# Port-forward para acessar a API localmente
-kubectl port-forward -n unifiapay svc/api-pagamentos 3000:3000
+# Iniciar port-forward em background (recomendado)
+nohup kubectl port-forward -n unifiapay deployment/api-pagamentos 3000:3000 > /tmp/port-forward.log 2>&1 &
 
-# Em outro terminal, enviar requisição PIX
+# OU iniciar em foreground (mantém terminal ocupado)
+kubectl port-forward -n unifiapay deployment/api-pagamentos 3000:3000
+```
+
+### **2. Testar no Navegador**
+
+Abra seu navegador e acesse:
+
+- **Rota Raiz (Documentação)**: http://localhost:3000/
+- **Health Check**: http://localhost:3000/health
+
+Você verá o JSON formatado automaticamente! 🎨
+
+### **3. Enviar uma Transação PIX**
+
+```bash
+# Enviar requisição PIX
 curl -X POST http://localhost:3000/pix \
   -H "Content-Type: application/json" \
   -d '{
@@ -203,58 +219,189 @@ curl -X POST http://localhost:3000/pix \
 # {"status":"PIX Aceito","transacao":"TX-001","estado":"AGUARDANDO_LIQUIDACAO"}
 ```
 
-### **2. Verificar o Livro-Razão**
+### **4. Verificar o Livro-Razão**
 
 ```bash
-# Acessar um dos pods da API
-kubectl exec -it -n unifiapay deployment/api-pagamentos -- /bin/sh
+# Listar os pods disponíveis
+kubectl get pods -n unifiapay -l app=api-pagamentos
+
+# Acessar um dos pods da API (substitua <POD-NAME> pelo nome real)
+kubectl exec -it -n unifiapay <POD-NAME> -- /bin/sh
 
 # Dentro do pod, verificar o log
 cat /var/logs/api/instrucoes.log
 # Saída: 2025-11-11T... | TX-001 | 150 | AGUARDANDO_LIQUIDACAO
+
+# Sair do pod
+exit
 ```
 
-### **3. Testar o Volume Compartilhado**
+### **5. Testar o Volume Compartilhado**
 
 ```bash
 # Listar os pods
 kubectl get pods -n unifiapay -l app=api-pagamentos
 
-# Escrever no log a partir do Pod 1
-kubectl exec -it -n unifiapay <POD-1-NAME> -- sh -c "echo 'TESTE_POD_1' >> /var/logs/api/instrucoes.log"
+# Exemplo de saída:
+# NAME                              READY   STATUS    RESTARTS   AGE
+# api-pagamentos-648f577b6f-675s6   1/1     Running   0          10m
+# api-pagamentos-648f577b6f-dmtqk   1/1     Running   0          10m
 
-# Ler do Pod 2
-kubectl exec -it -n unifiapay <POD-2-NAME> -- cat /var/logs/api/instrucoes.log
+# Escrever no log a partir do Pod 1
+kubectl exec -it -n unifiapay api-pagamentos-648f577b6f-675s6 -- sh -c "echo 'TESTE_POD_1' >> /var/logs/api/instrucoes.log"
+
+# Ler do Pod 2 (deve mostrar o texto escrito pelo Pod 1)
+kubectl exec -it -n unifiapay api-pagamentos-648f577b6f-dmtqk -- cat /var/logs/api/instrucoes.log
 # Deve mostrar: TESTE_POD_1
 ```
 
-### **4. Executar a Auditoria Manualmente**
+### **6. Executar a Auditoria Manualmente**
 
 ```bash
 # Criar um Job a partir do CronJob
 kubectl create job -n unifiapay auditoria-manual --from=cronjob/auditoria-service
 
-# Acompanhar a execução
+# Acompanhar a execução (Ctrl+C para sair)
 kubectl get pods -n unifiapay --watch
 
-# Ver logs da auditoria
+# Ver logs da auditoria (substitua pelo nome do pod real)
 kubectl logs -n unifiapay -l job-name=auditoria-manual
-# Saída: [Auditoria] Processo de liquidação concluído...
+
+# Saída esperada:
+# [Auditoria] Iniciando processo de liquidação...
+# [Auditoria] Processo de liquidação concluído. Status atualizado para LIQUIDADO.
 ```
 
-### **5. Escalar a API**
+### **7. Escalar a API**
 
 ```bash
 # Escalar para 4 réplicas
 kubectl scale deployment api-pagamentos -n unifiapay --replicas=4
 
-# Verificar
+# Verificar (deve mostrar 4 pods rodando)
 kubectl get pods -n unifiapay -l app=api-pagamentos
+
+# Voltar para 2 réplicas
+kubectl scale deployment api-pagamentos -n unifiapay --replicas=2
+```
+
+### **8. Verificar Logs em Tempo Real**
+
+```bash
+# Ver logs de todos os pods da API
+kubectl logs -n unifiapay -l app=api-pagamentos --tail=20
+
+# Seguir logs em tempo real (Ctrl+C para sair)
+kubectl logs -n unifiapay -l app=api-pagamentos -f
+
+# Ver logs de um pod específico
+kubectl logs -n unifiapay deployment/api-pagamentos --tail=50
+```
+
+### **9. Limpar Port-Forward**
+
+```bash
+# Matar todos os processos port-forward
+pkill -f "port-forward"
+
+# Verificar se há processos rodando na porta 3000
+lsof -ti:3000 | xargs kill -9
 ```
 
 ---
 
-## 🔒 Segurança Implementada
+## 🎛️ Interface de Gerenciamento Web - Kubernetes Dashboard
+
+### **Por que Kubernetes Dashboard em vez de Rancher?**
+
+Inicialmente foi considerado o uso do **Rancher**, uma plataforma robusta de gerenciamento multi-cluster. Porém, devido a:
+- ❌ Incompatibilidade com Kubernetes 1.34+ (versão utilizada no projeto)
+- ❌ Alta complexidade e recursos desnecessários para um único cluster
+- ❌ Peso elevado (>1GB RAM) inadequado para ambiente de desenvolvimento
+
+Optou-se pelo **Kubernetes Dashboard oficial**, que oferece:
+- ✅ Compatibilidade total com Kubernetes 1.34+
+- ✅ Ferramenta oficial da CNCF (Cloud Native Computing Foundation)
+- ✅ Leveza e simplicidade (~50MB)
+- ✅ Interface limpa e intuitiva
+- ✅ Todas as funcionalidades necessárias para o projeto
+
+### **Instalação do Kubernetes Dashboard:**
+
+```bash
+# Instalar o Dashboard
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+
+# Criar usuário admin
+kubectl apply -f rancher/dashboard-admin.yaml
+
+# Gerar token de acesso
+kubectl -n kubernetes-dashboard create token admin-user
+```
+
+### **Acessar o Dashboard:**
+
+```bash
+# 1. Iniciar port-forward
+kubectl port-forward -n kubernetes-dashboard svc/kubernetes-dashboard 8443:443
+
+# 2. Abrir no navegador (aceitar certificado autoassinado)
+# https://localhost:8443
+
+# 3. Fazer login com o token gerado no passo anterior
+```
+
+### **Uso em Background (Recomendado):**
+
+```bash
+# Port-forward permanente em background
+nohup kubectl port-forward -n kubernetes-dashboard svc/kubernetes-dashboard 8443:443 > /tmp/dashboard.log 2>&1 &
+
+# Parar port-forward quando necessário
+pkill -f "port-forward"
+```
+
+### **Funcionalidades Disponíveis:**
+
+- ✅ **Visualizar recursos** - Deployments, Pods, Services, ConfigMaps, Secrets
+- ✅ **Ver logs em tempo real** - Acompanhar execução da API e auditoria
+- ✅ **Executar shell nos containers** - Debug e inspeção de arquivos
+- ✅ **Escalar aplicações** - Alterar número de réplicas visualmente
+- ✅ **Monitorar recursos** - CPU/Memory de pods e containers
+- ✅ **Gerenciar CronJobs** - Verificar execuções da auditoria
+- ✅ **Editar recursos** - Modificar YAML diretamente na interface
+
+### **Navegação no Dashboard:**
+
+1. **Selecione o namespace**: `unifiapay` (dropdown no topo da página)
+2. Acesse as seções do menu lateral:
+   - **Workloads → Deployments** - Ver `api-pagamentos` (2 réplicas)
+   - **Workloads → Pods** - Ver pods em execução
+   - **Workloads → Cron Jobs** - Ver `auditoria-service`
+   - **Storage → Persistent Volume Claims** - Ver `livro-razao-pvc`
+   - **Config and Storage → Config Maps** - Ver `api-config` (reserva bancária)
+   - **Config and Storage → Secrets** - Ver `api-secrets` (chave PIX)
+
+### **Ações Comuns:**
+
+```bash
+# Ver logs de um pod no Dashboard:
+# Workloads → Pods → Clique no pod → Ícone "Logs" (canto superior direito)
+
+# Executar shell em um pod:
+# Workloads → Pods → Clique no pod → Ícone "Exec" (terminal)
+
+# Escalar deployment:
+# Workloads → Deployments → api-pagamentos → Editar → Alterar replicas
+```
+
+📖 **Documentação completa**: [`rancher/README-DASHBOARD.md`](rancher/README-DASHBOARD.md)
+
+💡 **Nota sobre Rancher**: A tentativa de instalação do Rancher está documentada em [`rancher/README-RANCHER.md`](rancher/README-RANCHER.md) para referência. O erro de incompatibilidade com Kubernetes 1.34+ levou à escolha técnica consciente pelo Dashboard oficial.
+
+---
+
+## �🔒 Segurança Implementada
 
 ### **1. Multi-Stage Builds**
 - **Estágio 1 (Builder)**: Instala dependências e prepara código
