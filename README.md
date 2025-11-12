@@ -481,13 +481,28 @@ resources:
 - **O que é**: Output do comando `docker build` mostrando os estágios 1/2 e 2/2
 - **O que Prova**: Uso de multi-stage build
 
+![image](images/image03a.png)
+![image](images/image03b.png)
+![image](images/image03c.png)
+
+![image](images/image04.png)
+
+
 **Print 2: Push no Docker Hub**
 - **O que é**: Output dos comandos `docker push robelio/api-pagamentos-spb:v1.RM556786` e `docker push robelio/auditoria-service-spb:v1.RM556786`
 - **O que Prova**: Imagens publicadas com tag de RM
 
+![image](images/image06.png)
+
+![image](images/image07.png)
+
+![image](images/image27.png)
+
 **Print 3: (Evidência de Contorno) Scan de Vulnerabilidade**
 - **O que é**: Output mostrando `docker: unknown command: docker scout`
 - **O que Prova**: Tentativa de executar scan (plugin não disponível no ambiente)
+
+![image](images/image05.png)
 
 ---
 
@@ -497,9 +512,13 @@ resources:
 - **O que é**: Output do comando `docker network inspect unifiap_net`
 - **O que Prova**: Configuração da sub-rede 172.25.0.0/24
 
+![image](images/image02.png)
+
 **Print 5: Logs da API lendo a Reserva**
 - **O que é**: Output de `kubectl exec -it ... -- /bin/sh` e `env | grep RESERVA`
 - **O que Prova**: Pod leu o ConfigMap (`RESERVA_BANCARIA_SALDO=1000000.00`)
+
+![image](images/image23.png)
 
 ---
 
@@ -509,21 +528,31 @@ resources:
 - **O que é**: Output de `kubectl get pods -n unifiapay` mostrando 2 pods `1/1 Running`
 - **O que Prova**: Deployment com 2 réplicas funcionando
 
+![image](images/image22.png)
+
 **Print 7: Escala (4 Réplicas)**
 - **O que é**: Output de `kubectl get pods -n unifiapay` após `kubectl scale --replicas=4`
 - **O que Prova**: Escalabilidade horizontal funcionando
+
+![image](images/image24d.png)
 
 **Print 8: Prova de Escrita/Leitura no Volume Compartilhado**
 - **O que é**: Output de `cat /var/logs/api/instrucoes.log` do Pod 2 mostrando `TESTE_DO_POD_1`
 - **O que Prova**: Pods compartilham o mesmo PVC
 
+![image](images/image28.png)
+
 **Print 9: CronJob e Job Concluído**
 - **O que é**: Output de `kubectl get pods -n unifiapay` mostrando pod com status `Completed`
 - **O que Prova**: CronJob executado com sucesso
 
+![image](images/image29.png)
+
 **Print 10: Log do Auditor**
 - **O que é**: Output de `kubectl logs -n unifiapay auditoria-run-3-lqnxz`
 - **O que Prova**: Script de auditoria rodou e processou o volume
+
+![image](images/image30.png)
 
 ---
 
@@ -533,14 +562,19 @@ resources:
 - **O que é**: Output de `kubectl top pods -n unifiapay` mostrando `error: Metrics API not available`
 - **O que Prova**: Comando executado (Metrics Server não instalado no Kind)
 
+![image](images/image31.png)
+
 **Print 12: Prova do securityContext (YAML)**
 - **O que é**: Print do arquivo `k8s/03-api-deployment.yaml` mostrando `securityContext`
 - **O que Prova**: Diretivas `runAsNonRoot: true` e `runAsUser: 1000`
+
+![image](images/image32.png)
 
 **Print 13: Prova de Permissão Restrita**
 - **O que é**: Output de `kubectl auth can-i create deployments -n unifiapay`
 - **O que Prova**: Service Account com permissões restritas (resposta `no`)
 
+![image](images/image33.png)
 ---
 
 ## 🤝 Contribuindo
