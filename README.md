@@ -518,7 +518,7 @@ resources:
 - **O que é**: Output de `kubectl exec -it ... -- /bin/sh` e `env | grep RESERVA`
 - **O que Prova**: Pod leu o ConfigMap (`RESERVA_BANCARIA_SALDO=1000000.00`)
 
-![image](images/image23.png)
+![image](images/image23a.png)
 
 ---
 
