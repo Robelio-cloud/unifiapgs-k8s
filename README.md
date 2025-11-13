@@ -318,6 +318,8 @@ lsof -ti:3000 | xargs kill -9
 
 ### **Por que Kubernetes Dashboard em vez de Rancher?**
 
+![image](images/image11.png)
+
 Inicialmente foi considerado o uso do **Rancher**, uma plataforma robusta de gerenciamento multi-cluster. Porém, devido a:
 - ❌ Incompatibilidade com Kubernetes 1.34+ (versão utilizada no projeto)
 - ❌ Alta complexidade e recursos desnecessários para um único cluster
@@ -331,6 +333,8 @@ Optou-se pelo **Kubernetes Dashboard oficial**, que oferece:
 - ✅ Todas as funcionalidades necessárias para o projeto
 
 ### **Instalação do Kubernetes Dashboard:**
+
+![image](images/image36.png)
 
 ```bash
 # Instalar o Dashboard
