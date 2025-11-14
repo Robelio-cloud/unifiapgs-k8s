@@ -518,9 +518,29 @@ resources:
 
 **Print 4: Inspeção da Rede Docker**
 - **O que é**: Output do comando `docker network inspect unifiap_net`
-- **O que Prova**: Configuração da sub-rede 172.25.0.0/24
+- **O que Prova**: Configuração da sub-rede **172.25.0.0/24** com Gateway **172.25.0.1**
+- **Comando para reproduzir**:
+  ```bash
+  # Listar redes Docker do projeto
+  docker network ls | grep unifiap
+  
+  # Inspecionar rede específica
+  docker network inspect unifiap_net
+  
+  # Resultado esperado:
+  # - Subnet: 172.25.0.0/24
+  # - Gateway: 172.25.0.1
+  # - IPs Disponíveis: 253
+  ```
 
 ![image](images/image02.png)
+
+**Detalhes da Rede Docker:**
+- **Nome**: `unifiap_net`
+- **Driver**: `bridge`
+- **Subnet**: `172.25.0.0/24`
+- **Gateway**: `172.25.0.1`
+- **Range de IPs**: `172.25.0.2` até `172.25.0.254`
 
 **Print 5: Logs da API lendo a Reserva**
 - **O que é**: Output de `kubectl exec -it ... -- /bin/sh` e `env | grep RESERVA`
